@@ -13,6 +13,7 @@ color: #5a8a5a;
 margin: 0;
 padding: 20px;
 min-height: 100vh;
+box-sizing: border-box;
 }
 
 h1 {
@@ -45,8 +46,10 @@ flex-wrap: wrap;
 }
 
 .card {
-width: 300px;
-padding: 35px 20px;
+flex: 1;
+min-width: 280px;
+max-width: 340px;
+padding: 40px 20px;
 background: #ffffff;
 border-radius: 25px;
 box-shadow: 0 10px 25px rgba(160,200,160,0.3);
@@ -76,17 +79,21 @@ color: #88b04b;
 font-size: 3.5em;
 font-weight: bold;
 color: #88b04b;
-margin: 0 30px;
+flex-shrink: 0;
 }
 
 .buttons {
 margin-top: 40px;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 15px;
 }
 
 .draw-button, .undo-button {
 padding: 14px 32px;
 font-size: 1.3em;
-margin: 10px;
+min-width: 280px;
 border-radius: 15px;
 cursor: pointer;
 font-weight: bold;
@@ -170,59 +177,63 @@ background: #aaffc3;
 transform: translateY(-3px);
 }
 
+/* スマホ最適化 */
 @media (max-width: 768px) {
-.vs-container {
-flex-direction: column;
-gap: 35px;
+body {
+padding: 15px;
 }
-
-.vs {
-transform: rotate(90deg);
-margin: 20px 0;
-}
-
-.card {
-width: 90%;
-max-width: 340px;
-padding: 45px 20px;
-}
-
-.card .title {
-font-size: 1.7em;
-}
-
 h1 {
 font-size: 2.1em;
 }
-
+.subtitle {
+font-size: 1.1em;
+}
 .progress-text {
 font-size: 1.6em;
+margin: 30px 0;
 }
-
-.buttons {
-display: flex;
+.vs-container {
 flex-direction: column;
-align-items: center;
+gap: 30px;
 }
-
+.vs {
+transform: rotate(90deg);
+margin: 10px 0;
+}
+.card {
+width: 90%;
+max-width: none;
+padding: 45px 20px;
+}
+.card .title {
+font-size: 1.7em;
+}
+.buttons {
+width: 100%;
+}
 .draw-button, .undo-button {
-width: 80%;
-max-width: 320px;
+width: 85%;
+max-width: 340px;
+font-size: 1.2em;
 }
 }
 </style>
 </head>
 <body>
-<h1>ワッツ◎さーくる<br>楽曲トーナメントソート</h1>
+<h1>ワッツ◎さーくる楽曲ソート</h1>
 <div class="subtitle">好きな方をタップ！</div>
 
 <div id="tournament">
 <div class="progress-text" id="progress">進捗 0%</div>
 
 <div class="vs-container">
-<div class="card" id="left" onclick="choose('left')"></div>
+<div class="card" id="left" onclick="choose('left')">
+<div class="title"></div>
+</div>
 <div class="vs">VS</div>
-<div class="card" id="right" onclick="choose('right')"></div>
+<div class="card" id="right" onclick="choose('right')">
+<div class="title"></div>
+</div>
 </div>
 
 <div class="buttons">
@@ -232,12 +243,13 @@ max-width: 320px;
 </div>
 
 <div id="result" class="result" style="display:none;">
-<h2>ランキング完成！✨</h2>
+<h2>✨ランキング完成✨</h2>
 <ol id="ranking"></ol>
-<button class="restart" onclick="startTournament()">もう一度やる</button>
+<button class="restart" onclick="startTournament()">もう一度</button>
 </div>
 
 <script>
+// 曲リスト（そのまま）
 const songs = [
 "チャンス到来！ギガ盛スペクタクル",
 "初恋結",
@@ -268,10 +280,10 @@ const songs = [
 "なんでもない青空"
 ];
 
-let remaining = []; // まだランキング決定してない曲
-let ranking = []; // 決定したランキング（1位から順に）
-let history = []; // 戻る履歴
-let currentA, currentB; // 今比較中の2曲
+let remaining = [];
+let ranking = [];
+let history = [];
+let currentA, currentB;
 
 function startTournament() {
 remaining = songs.map(title => ({ title }));
@@ -286,19 +298,17 @@ pickNextPair();
 
 function pickNextPair() {
 if (remaining.length < 2) {
-// 残り1曲 or 0曲 → ランキング完成
 if (remaining.length === 1) ranking.push(remaining[0]);
 showResult();
 return;
 }
 
-// ランダムに2曲選ぶ
 remaining.sort(() => Math.random() - 0.5);
 currentA = remaining[0];
 currentB = remaining[1];
 
-document.getElementById('left').innerHTML = `<div class="title">${currentA.title}</div>`;
-document.getElementById('right').innerHTML = `<div class="title">${currentB.title}</div>`;
+document.querySelector('#left .title').textContent = currentA.title;
+document.querySelector('#right .title').textContent = currentB.title;
 }
 
 function recordHistory() {
@@ -313,14 +323,10 @@ document.getElementById('undo').disabled = false;
 
 function choose(side) {
 recordHistory();
-
 const winner = side === 'left' ? currentA : currentB;
 const loser = side === 'left' ? currentB : currentA;
 
-// 勝者をランキング先頭に追加（1位方向）
 ranking.unshift(winner);
-
-// 負け者をremainingから削除（勝者も削除）
 remaining = remaining.filter(s => s !== winner && s !== loser);
 
 updateProgress();
@@ -329,8 +335,6 @@ pickNextPair();
 
 function draw() {
 recordHistory();
-
-// 引き分け：両方ランキング先頭にランダム順で追加
 if (Math.random() < 0.5) {
 ranking.unshift(currentA);
 ranking.unshift(currentB);
@@ -338,7 +342,6 @@ ranking.unshift(currentB);
 ranking.unshift(currentB);
 ranking.unshift(currentA);
 }
-
 remaining = remaining.filter(s => s !== currentA && s !== currentB);
 
 updateProgress();
@@ -347,20 +350,16 @@ pickNextPair();
 
 function undo() {
 if (history.length === 0) return;
-
 const prev = history.pop();
 remaining = prev.remaining.map(s => ({ title: s.title }));
 ranking = prev.ranking.map(s => ({ title: s.title }));
 currentA = prev.currentA;
 currentB = prev.currentB;
 
-document.getElementById('left').innerHTML = `<div class="title">${currentA.title}</div>`;
-document.getElementById('right').innerHTML = `<div class="title">${currentB.title}</div>`;
+document.querySelector('#left .title').textContent = currentA.title;
+document.querySelector('#right .title').textContent = currentB.title;
 
-if (history.length === 0) {
-document.getElementById('undo').disabled = true;
-}
-
+document.getElementById('undo').disabled = history.length === 0;
 updateProgress();
 }
 
@@ -372,20 +371,16 @@ document.getElementById('progress').textContent = `進捗 ${percent}%`;
 
 function showResult() {
 document.getElementById('tournament').style.display = 'none';
-
 const rankingList = document.getElementById('ranking');
 rankingList.innerHTML = '';
-
 ranking.forEach(song => {
 const li = document.createElement('li');
 li.textContent = song.title;
 rankingList.appendChild(li);
 });
-
 document.getElementById('result').style.display = 'block';
 }
 
-// スタート
 startTournament();
 </script>
 </body>
