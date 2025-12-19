@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ワッツ◎さーくる 楽曲ソート</title>
+
+<!-- M PLUS Rounded 1c をGoogle Fontsから読み込み（ニコモジっぽい丸ゴシック！！） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+body {
+font-family: 'M PLUS Rounded 1c', Arial, sans-serif; /* ← ここでニコモジ風適用！！ */
+text-align: center;
+background: linear-gradient(to bottom, #ffffff, #e8f8e8);
+color: #5a8a5a;
+margin: 0;
+padding: 20px;
+min-height: 100vh;
+box-sizing: border-box;
+}
+
+/* 太字もかわいくなるように */
+h1, .card .title, .vs, .progress-text, button {
+font-weight: 700; /* 少し太めでポップに */
+}
+
+h1 {
+color: #88b04b;
+margin-bottom: 10px;
+font-size: 2.4em;
+text-shadow: 1px 1px 3px rgba(136,176,75,0.3);
+}
+
+.subtitle {
+font-size: 1.2em;
+margin-bottom: 20px;
+color: #77a077;
+}
+
+.progress-text {
+font-size: 2em;
+font-weight: 900; /* 進捗は目立つように太く */
+color: #88b04b;
+margin: 40px 0;
+}
+
+.vs-container {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 20px;
+margin: 40px auto;
+flex-wrap: wrap;
+}
+
+.card {
+flex: 1;
+min-width: 280px;
+max-width: 340px;
+padding: 40px 20px;
+background: #ffffff;
+border-radius: 25px;
+box-shadow: 0 10px 25px rgba(160,200,160,0.3);
+cursor: pointer;
+transition: all 0.3s ease;
+border: 3px solid #ccffdd;
+}
+
+.card:hover {
+transform: translateY(-10px) scale(1.03);
+box-shadow: 0 20px 40px rgba(136,176,75,0.4);
+border-color: #aaffc3;
+}
+
+.card:active {
+transform: translateY(0) scale(0.98);
+}
+
+.card .title {
+font-size: 1.8em;
+font-weight: 900;
+margin-bottom: 15px;
+color: #88b04b;
+}
+
+.vs {
+font-size: 3.5em;
+font-weight: 900;
+color: #88b04b;
+flex-shrink: 0;
+}
+
+.buttons {
+margin-top: 40px;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 15px;
+}
+
+.draw-button, .undo-button {
+padding: 14px 32px;
+font-size: 1.3em;
+min-width: 280px;
+border-radius: 15px;
+cursor: pointer;
+font-weight: 700;
+box-shadow: none !important;
+}
+
+.draw-button {
+background: #ddffdd;
+color: #5a8a5a;
+border: 2px solid #88b04b;
+}
+
+.draw-button:hover {
+background: #bbffbb;
+}
+
+.undo-button {
+background: #f0f0f0;
+color: #777;
+border: 2px solid #aaa;
+}
+
+.undo-button:hover {
+background: #e0e0e0;
+}
+
+.undo-button:disabled {
+background: #f8f8f8;
+color: #bbb;
+border-color: #ddd;
+cursor: not-allowed;
+}
+
+.result {
+margin: 40px auto;
+max-width: 800px;
+}
+
+.result h2 {
+color: #88b04b;
+}
+
+.result ol {
+text-align: left;
+background: #ffffff;
+padding: 25px 35px;
+border-radius: 20px;
+box-shadow: 0 10px 25px rgba(160,200,160,0.3);
+border: 2px solid #ccffdd;
+counter-reset: ranking;
+}
+
+.result li {
+font-size: 1.4em;
+padding: 12px 0;
+color: #5a8a5a;
+counter-increment: ranking;
+}
+
+.result li::before {
+content: counter(ranking) "位 ";
+color: #88b04b;
+font-weight: 900;
+font-size: 1.1em;
+}
+
+button.restart {
+padding: 16px 35px;
+font-size: 1.2em;
+background: #ccffdd;
+color: #5a8a5a;
+border: none;
+border-radius: 15px;
+cursor: pointer;
+margin-top: 30px;
+font-weight: 700;
+box-shadow: none !important;
+}
+
+button.restart:hover {
+background: #aaffc3;
+}
+
+/* スマホ最適化 */
+@media (max-width: 768px) {
+body {
+padding: 15px;
+}
+h1 {
+font-size: 2.1em;
+}
+.subtitle {
+font-size: 1.1em;
+}
+.progress-text {
+font-size: 1.6em;
+margin: 30px 0;
+}
+.vs-container {
+flex-direction: column;
+gap: 30px;
+}
+.vs {
+transform: none;
+font-size: 4.5em;
+margin: 20px 0;
+}
+.card {
+width: 90%;
+max-width: none;
+padding: 45px 20px;
+}
+.card .title {
+font-size: 1.7em;
+}
+.buttons {
+width: 100%;
+}
+.draw-button, .undo-button {
+width: 85%;
+max-width: 340px;
+font-size: 1.2em;
+}
+}
+</style>
+</head>
+<body>
+<h1>ワッツ◎さーくる楽曲ソート</h1>
+<div class="subtitle">好きな方をタップ！</div>
+
+<div id="tournament">
+<div class="progress-text" id="progress">進捗 0%</div>
+
+<div class="vs-container">
+<div class="card" id="left" onclick="choose('left')">
+<div class="title"></div>
+</div>
+<div class="vs">VS</div>
+<div class="card" id="right" onclick="choose('right')">
+<div class="title"></div>
+</div>
+</div>
+
+<div class="buttons">
+<button class="draw-button" onclick="draw()">引き分け</button>
+<button class="undo-button" id="undo" onclick="undo()" disabled>← 1つ前に戻る</button>
+</div>
+</div>
+
+<div id="result" class="result" style="display:none;">
+<h2>✨ランキング完成✨</h2>
+<ol id="ranking"></ol>
+<button class="restart" onclick="startTournament()">もう一度</button>
+</div>
+
+<script>
+/* スクリプト部分は前回と同じ（省略してないよ！全部そのまま） */
+const songs = [
+"チャンス到来！ギガ盛スペクタクル",
+"初恋結",
+"臆病リボルター！",
+"Summer Day Trip",
+"薄明のポラリス",
+"ミラクルサイリュウム",
+"ユメ、ときどき君。",
+"夏コイ花ビ",
+"JU・GE・MU",
+"ステップシーケンサー",
+"スノービロード",
+"ミライリライト",
+"One way story",
+"星空の彼方まで",
+"ゲンダイクライマー",
+"MAX！ハレルヤミュージック",
+"イナズマトレイン",
+"僕らの未来予想図",
+"始まりはいつだって\"ド\"",
+"回るよ！クルクル◎どーなっつ",
+"真紅のマーガレット〜21枚目の\"スキ\"〜",
+"青の日々~spring time of life~",
+"まだまだまだ、最前線",
+"終わりはいつだって初めの一歩",
+"サマサマ☆サマトピア",
+"真っ白なコンパス",
+"なんでもない青空"
+];
+
+/* 以下、startTournament() から showResult() までのスクリプト全部前回と同じ！！ */
+let remaining = [];
+let ranking = [];
+let history = [];
+let currentA, currentB;
+
+function startTournament() {
+remaining = songs.map(title => ({ title }));
+ranking = [];
+history = [];
+document.getElementById('tournament').style.display = 'block';
+document.getElementById('result').style.display = 'none';
+document.getElementById('undo').disabled = true;
+updateProgress();
+pickNextPair();
+}
+
+function pickNextPair() {
+if (remaining.length < 2) {
+if (remaining.length === 1) ranking.push(remaining[0]);
+showResult();
+return;
+}
+
+remaining.sort(() => Math.random() - 0.5);
+currentA = remaining[0];
+currentB = remaining[1];
+
+document.querySelector('#left .title').textContent = currentA.title;
+document.querySelector('#right .title').textContent = currentB.title;
+}
+
+function recordHistory() {
+history.push({
+remaining: remaining.map(s => ({ title: s.title })),
+ranking: ranking.map(s => ({ title: s.title })),
+currentA: { title: currentA.title },
+currentB: { title: currentB.title }
+});
+document.getElementById('undo').disabled = false;
+}
+
+function choose(side) {
+recordHistory();
+const winner = side === 'left' ? currentA : currentB;
+const loser = side === 'left' ? currentB : currentA;
+
+ranking.unshift(winner);
+remaining = remaining.filter(s => s !== winner && s !== loser);
+
+updateProgress();
+pickNextPair();
+}
+
+function draw() {
+recordHistory();
+if (Math.random() < 0.5) {
+ranking.unshift(currentA);
+ranking.unshift(currentB);
+} else {
+ranking.unshift(currentB);
+ranking.unshift(currentA);
+}
+remaining = remaining.filter(s => s !== currentA && s !== currentB);
+
+updateProgress();
+pickNextPair();
+}
+
+function undo() {
+if (history.length === 0) return;
+const prev = history.pop();
+remaining = prev.remaining.map(s => ({ title: s.title }));
+ranking = prev.ranking.map(s => ({ title: s.title }));
+currentA = prev.currentA;
+currentB = prev.currentB;
+
+document.querySelector('#left .title').textContent = currentA.title;
+document.querySelector('#right .title').textContent = currentB.title;
+
+document.getElementById('undo').disabled = history.length === 0;
+updateProgress();
+}
+
+function updateProgress() {
+const done = ranking.length;
+const percent = Math.round((done / songs.length) * 100);
+document.getElementById('progress').textContent = `進捗 ${percent}%`;
+}
+
+function showResult() {
+document.getElementById('tournament').style.display = 'none';
+const rankingList = document.getElementById('ranking');
+rankingList.innerHTML = '';
+ranking.forEach(song => {
+const li = document.createElement('li');
+li.textContent = song.title;
+rankingList.appendChild(li);
+});
+document.getElementById('result').style.display = 'block';
+}
+
+startTournament();
+</script>
+</body>
+</html>
